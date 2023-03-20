@@ -12,6 +12,25 @@ from models.amenity import Amenity
 from models.review import Review
 
 
+def isfloat(arg):
+    """Checks if argument is a float data type variable"""
+    try:
+        float(arg)
+        return True
+    except ValueError:
+        return False
+
+
+def type_parser(arg):
+    """Check data type of arg and cast it"""
+    if arg.isalpha():
+        arg = str(arg)
+    elif arg.isdigit():
+        arg = int(arg)
+    elif isfloat(arg):
+        arg = float(arg)
+    return arg
+
 class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
 
@@ -115,16 +134,31 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
+        args = args.split()
+      
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+        elif args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+        new_instance = eval(args[0])()
+        
+        new_dict = {}
+        for arg in args[1:]:
+            atr = arg.split("=")
+            key = atr[0]
+            if "_" in atr[1]:
+                atr[1] = atr[1].replace("_", " ")
+            value = type_parser(atr[1])    
+            new_dict[atr[0]] = atr[1]
+            # setattr(new_instance, type_parser(atr[0]), atr[1])
+            new_instance.__dict__.update({key: value})
+
+        
+        print(new_dict)
         storage.save()
         print(new_instance.id)
-        storage.save()
 
     def help_create(self):
         """ Help information for the create method """
